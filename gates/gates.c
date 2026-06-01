@@ -40,36 +40,40 @@ void H(const int n, double complex amplitudes[n]) {
 }
 
 // Pauli X
-void NOT(const int n, double complex amplitudes[n]) {
-    for (int i = 0; i < 1 << n; i += 2) {
-        // swap amplitudes[i] <=> amplitudes[i + 1]
-        double complex temp = amplitudes[i];
-        amplitudes[i] = amplitudes[i + 1];
-        amplitudes[i + 1] = temp;
+void NOT(const int n, double complex amplitudes[n], int q) {
+    if (q >= n || q < 0) {
+        fprintf(stderr, "Invalid \"q\" argument in NOT(), when n = %d: %d\n", n, q);
+        return;
+    }
+
+    for (int i = 0; i < 1 << n; i++) {
+        amplitudes[i] = amplitudes[
+                (i / (1 << (n - q)) * (1 << (n - q))) +
+                (1 << (n - q - 1)) * (i % (1 << (n - q)) < (1 << (n - q - 1))) +
+                i % (1 << (n - q - 1))
+        ];
     }
 }
 
 // Pauli Y
 void PauliY(const int n, double complex amplitudes[n], int q) {
-    if (q >= n || q < 0)
+    if (q >= n || q < 0) {
         fprintf(stderr, "Invalid \"q\" argument in PauliY(), when n = %d: %d\n", n, q);
-
-    for (int i = 0; i < 1 << n; i++) {
-        amplitudes[i] = amplitudes[
-                        (i / (1 << (n - q)) * (1 << (n - q))) +
-                        (1 << (n - q - 1)) * (i % (1 << (n - q)) < (1 << (n - q - 1))) +
-                         i % (1 << (n - q - 1))
-                         ];
-        amplitudes[i] *= I;
-        amplitudes[i] *= (2 * ((i % (1 << (n - q))) / (1 << (n - q - 1))) - 1); // set sign
+        return;
     }
 
+    NOT(n, amplitudes, q);
+    for (int i = 0; i < 1 << n; i++)
+        amplitudes[i] *= I;
+    PauliZ(n, amplitudes, q);
 }
 
 // Pauli Z
 void PauliZ(const int n, double complex amplitudes[n], int q) {
-    if (q >= n || q < 0)
+    if (q >= n || q < 0) {
         fprintf(stderr, "Invalid \"q\" argument in PauliZ(), when n = %d: %d\n", n, q);
+        return;
+    }
     for (int i = 0; i < 1 << n; i++)
         amplitudes[i] *= 2 * ((i % (1 << (n - q))) / (1 << (n - q - 1))) - 1; // set sign
 }
