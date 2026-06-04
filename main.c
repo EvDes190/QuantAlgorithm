@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     Grover(n, amplitudes);
 
     int answer = watch(n, amplitudes);
-    fprintf(output, "Answer = %d\nChance = %.4lf\n", answer, cabs(amplitudes[answer]));
+    fprintf(output, "Answer = %d\nChance = %lf\n", answer, cabs(amplitudes[answer]));
 
     free(amplitudes);
     return 1;
