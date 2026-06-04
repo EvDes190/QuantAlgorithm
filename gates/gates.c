@@ -10,12 +10,11 @@ void Identity(const int n, double complex amplitudes[n]) {
     // nothing
 }
 
-void H(const int n, double complex amplitudes[n]) {
+void fifty_fifty(const int n, double complex amplitudes[n]);
+
+void H_full(const int n, double complex amplitudes[n]) {
     // O(N * log_2(N)) Hadamara's transformation
 
-    for (int j = 0; j < 1 << n; j++)
-        printf("%.3lf ", cabs(amplitudes[j]));
-    printf("\n\n");
 
     for (int iter = 0; iter < n; iter++) {
         int bucket = 1 << iter;
@@ -27,9 +26,6 @@ void H(const int n, double complex amplitudes[n]) {
                 amplitudes[bucket_i + bucket] = temp - amplitudes[bucket_i + bucket];
             }
         }
-        for (int j = 0; j < 1 << n; j++)
-            printf("%.3lf ", cabs(amplitudes[j]));
-        printf("\n\n");
     }
 
     // multiplication by 1/sqrt(2^n)
@@ -39,6 +35,28 @@ void H(const int n, double complex amplitudes[n]) {
     }
 }
 
+void H(const int n, double complex amplitudes[n], int q)    {
+    double complex *temp = malloc((1 << n) * sizeof(double complex));
+    if (temp == NULL)
+        return;
+    memmove(temp, amplitudes, (1 << n) * sizeof(double complex));
+
+    NOT(n, temp, q);
+    Z(n, amplitudes, q);
+
+    for (int i = 0; i << n; i++)
+        amplitudes[i] += temp[i];
+
+    free(temp);
+
+    // divide by sqrt(2)
+    double k = sqrt(2);
+    for (int i = 0; i < 1 << n; i++)
+        amplitudes[i] /= k;
+}
+
+
+
 // Pauli X
 void NOT(const int n, double complex amplitudes[n], int q) {
     if (q >= n || q < 0) {
@@ -46,17 +64,23 @@ void NOT(const int n, double complex amplitudes[n], int q) {
         return;
     }
 
+    double complex *temp = malloc((1 << n) * sizeof(double complex));
+    if (temp == NULL)
+        return;
+
+    memmove(temp, amplitudes, (1 << n) * sizeof(double complex));
     for (int i = 0; i < 1 << n; i++) {
-        amplitudes[i] = amplitudes[
+        amplitudes[i] = temp[
                 (i / (1 << (n - q)) * (1 << (n - q))) +
                 (1 << (n - q - 1)) * (i % (1 << (n - q)) < (1 << (n - q - 1))) +
                 i % (1 << (n - q - 1))
         ];
     }
+    free(temp);
 }
 
 // Pauli Y
-void PauliY(const int n, double complex amplitudes[n], int q) {
+void Y(const int n, double complex amplitudes[n], int q) {
     if (q >= n || q < 0) {
         fprintf(stderr, "Invalid \"q\" argument in PauliY(), when n = %d: %d\n", n, q);
         return;
@@ -65,11 +89,11 @@ void PauliY(const int n, double complex amplitudes[n], int q) {
     NOT(n, amplitudes, q);
     for (int i = 0; i < 1 << n; i++)
         amplitudes[i] *= I;
-    PauliZ(n, amplitudes, q);
+    Z(n, amplitudes, q);
 }
 
 // Pauli Z
-void PauliZ(const int n, double complex amplitudes[n], int q) {
+void Z(const int n, double complex amplitudes[n], int q) {
     if (q >= n || q < 0) {
         fprintf(stderr, "Invalid \"q\" argument in PauliZ(), when n = %d: %d\n", n, q);
         return;
@@ -109,4 +133,14 @@ void QFTi(const int n, double complex amplitudes[n]) {
 
     memmove(amplitudes, new_amplitudes, (1 << n) * sizeof(double complex));
     free(new_amplitudes);
+}
+
+void A(const int n, double complex amplitudes[n]) {
+    double complex sum = 0;
+    for (int i = 0; i < 1 << n; i++)
+        sum += amplitudes[i];
+    sum /= (double complex) (1 << n);
+
+    for (int i = 0; i < 1 << n; i++)
+        amplitudes[i] =  2 * sum - amplitudes[i];
 }

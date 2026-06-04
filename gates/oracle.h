@@ -7,7 +7,10 @@
 
 #include <complex.h>
 
-//void U(const int n, double complex amplitudes[n], double complex out[n + 1]);
-void Uf(int x, int n, double complex amplitudes[n], double complex out[n + 1]);
+void set_answer(int x);
+int get_answer();
+
+//void Uf(int n, double complex amplitudes[n], double complex out[n + 1]);
+void Uf(int n, double complex amplitudes[n]);
 
 #endif //QUANTALGORITHM_ORACLE_H
