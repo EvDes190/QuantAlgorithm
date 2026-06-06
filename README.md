@@ -6,4 +6,4 @@
 
 ## Run:
     - Run grover.exe
-    Options: "q=[qubit number]", "d=[debug true/false]", "a=[answer of f(x) = 1]"
+    Options: "q=[qubit number]", "d=[debug true/false]", "a=[answer of f(x) = 1]", f=[output file]
