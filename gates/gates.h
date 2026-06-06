@@ -8,7 +8,7 @@
 #include <complex.h>
 
 void Identity(int n, double complex amplitudes[n]);
-void H_full(const int n, double complex amplitudes[n]);
+void H_full(int n, double complex amplitudes[n]);
 void H(int n, double complex amplitudes[n], int q);
 void NOT(int n, double complex amplitudes[n], int q);
 void Y(int n, double complex amplitudes[n], int q);

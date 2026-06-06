@@ -10,12 +10,9 @@ void Identity(const int n, double complex amplitudes[n]) {
     // nothing
 }
 
-void fifty_fifty(const int n, double complex amplitudes[n]);
 
 void H_full(const int n, double complex amplitudes[n]) {
     // O(N * log_2(N)) Hadamara's transformation
-
-
     for (int iter = 0; iter < n; iter++) {
         int bucket = 1 << iter;
         // j - current bucket's pair

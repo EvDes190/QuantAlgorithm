@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 #include "gates/gates.h"
 #include "gates/oracle.h"
@@ -55,10 +56,12 @@ int watch(int n, double complex amplitudes[n]) {
     return max_i;
 }
 
-void Grover(int n, double complex amplitudes[n]) {
+int Grover(int n, double complex amplitudes[n]) {
     H_full(n, amplitudes);
-    for (int iter = 1; (double) iter < (M_PI / 4.0) * sqrt(1 << n); iter++) {
+    int iterations = (int) ((M_PI / 4.0) * sqrt(1 << n));
+    for (int iter = 1; iter < iterations; iter++) {
         fprintf(output, "ITERATION %d>\n", iter);
+        fflush(output);
 
         Uf(n, amplitudes);
         ifprint("after Z:\n");
@@ -69,11 +72,13 @@ void Grover(int n, double complex amplitudes[n]) {
         god_watch(output, n, amplitudes);
     }
 
+    return iterations - 1;
 }
 
 
 int main(int argc, char* argv[]) {
     int n = 3;
+    output = stdout;
 
     for (int i = 1; i < argc; i++) {
         assert(argv[i][1] == '=' && "Invalid arguments");
@@ -81,7 +86,7 @@ int main(int argc, char* argv[]) {
         switch (argv[i][0]) {
             case 'q':
                 n = (int) strtoul(argv[i] + 2, NULL, 10);
-                assert(n > 0 && n <= 20 && "Invalid qubit number argument\n");
+                assert(n > 0 && n <= 100 && "Invalid qubit number argument\n");
                 break;
             case 'd':
                 debug = strcmp(argv[i] + 2, "true");
@@ -89,19 +94,23 @@ int main(int argc, char* argv[]) {
                 break;
             case 'a':
                 set_answer((int) strtoul(argv[i] + 2, NULL, 10));
+            case 'f':
+                output = fopen(argv[i] + 2, "w");
+                assert(output != NULL && "Opening file failed\n");
         }
     }
     assert(get_answer() >= 0 && get_answer() < (1 << n) && "Invalid answer argument\n");
 
-    output = fopen("output.txt", "w");
     double complex *amplitudes = calloc(1 << n, sizeof(double complex));
     assert(amplitudes != NULL);
     amplitudes[0] = 1;
 
-    Grover(n, amplitudes);
+    clock_t start = clock();
+    int iterations = Grover(n, amplitudes);
+    clock_t end = clock();
 
     int answer = watch(n, amplitudes);
-    fprintf(output, "Answer = %d\nChance = %lf\n", answer, cabs(amplitudes[answer]));
+    fprintf(output, "\nAnswer = %d\nIterations = %d\nChance = %.10lf\nTime = %.3lf seconds\n", answer, iterations, cabs(amplitudes[answer]), (double) (end - start) / CLOCKS_PER_SEC);
 
     free(amplitudes);
     return 1;
