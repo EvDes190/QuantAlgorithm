@@ -37,7 +37,7 @@ void H_full(const int n, double complex amplitudes[n]) {
 // 1 -1
 void H(const int n, double complex amplitudes[n], int q)    {
     double complex *temp = malloc((1 << n) * sizeof(double complex));
-    assert(temp != NULL && "Memory allocated failed in QFTi()");
+    assert(temp != NULL && "Memory allocated failed in H()");
     memmove(temp, amplitudes, (1 << n) * sizeof(double complex));
 
     NOT(n, temp, q);
