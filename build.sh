@@ -1,0 +1,1 @@
+gcc -o grover.exe main.c gates/gates.c gates/oracle.c
