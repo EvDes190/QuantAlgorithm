@@ -34,8 +34,7 @@ void H_full(const int n, double complex amplitudes[n]) {
 
 void H(const int n, double complex amplitudes[n], int q)    {
     double complex *temp = malloc((1 << n) * sizeof(double complex));
-    if (temp == NULL)
-        return;
+    assert(temp != NULL && "Memory allocated failed in QFTi()");
     memmove(temp, amplitudes, (1 << n) * sizeof(double complex));
 
     NOT(n, temp, q);
@@ -62,8 +61,7 @@ void NOT(const int n, double complex amplitudes[n], int q) {
     }
 
     double complex *temp = malloc((1 << n) * sizeof(double complex));
-    if (temp == NULL)
-        return;
+    assert(temp != NULL && "Memory allocated failed in NOT()");
 
     memmove(temp, amplitudes, (1 << n) * sizeof(double complex));
     for (int i = 0; i < 1 << n; i++) {
@@ -102,6 +100,7 @@ void Z(const int n, double complex amplitudes[n], int q) {
 // Quantum Fourier Transform
 void QFT(const int n, double complex amplitudes[n]) {
     double complex *new_amplitudes = calloc((1 << n), sizeof(double complex));
+    assert(new_amplitudes != NULL && "Memory allocated failed in QFT()");
     double complex w = cexp(-2 * M_PI * I / (1 << n));
     double complex root_N = csqrt(1 << n);
 
@@ -119,6 +118,7 @@ void QFT(const int n, double complex amplitudes[n]) {
 // inverse Quantum Fourier Transform
 void QFTi(const int n, double complex amplitudes[n]) {
     double complex *new_amplitudes = calloc((1 << n), sizeof(double complex));
+    assert(new_amplitudes != NULL && "Memory allocated failed in QFTi()");
     double complex w = cexp(2 * M_PI * I / (1 << n));
     double complex root_N = csqrt(1 << n);
     for (int k = 0; k < 1 << n; k++) {
