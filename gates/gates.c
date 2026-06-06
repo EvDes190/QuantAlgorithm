@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <complex.h>
+#include <assert.h>
 
 #include "gates.h"
 
@@ -12,7 +13,7 @@ void Identity(const int n, double complex amplitudes[n]) {
 
 
 void H_full(const int n, double complex amplitudes[n]) {
-    // O(N * log_2(N)) Hadamara's transformation
+    // O(N * log_2(N)) Hadamara's transformation of all qubits
     for (int iter = 0; iter < n; iter++) {
         int bucket = 1 << iter;
         // j - current bucket's pair
@@ -32,6 +33,8 @@ void H_full(const int n, double complex amplitudes[n]) {
     }
 }
 
+// 1 1
+// 1 -1
 void H(const int n, double complex amplitudes[n], int q)    {
     double complex *temp = malloc((1 << n) * sizeof(double complex));
     assert(temp != NULL && "Memory allocated failed in QFTi()");
@@ -51,9 +54,9 @@ void H(const int n, double complex amplitudes[n], int q)    {
         amplitudes[i] /= k;
 }
 
-
-
 // Pauli X
+// 0 1
+// 1 0
 void NOT(const int n, double complex amplitudes[n], int q) {
     if (q >= n || q < 0) {
         fprintf(stderr, "Invalid \"q\" argument in NOT(), when n = %d: %d\n", n, q);
@@ -75,6 +78,8 @@ void NOT(const int n, double complex amplitudes[n], int q) {
 }
 
 // Pauli Y
+// 0 -i
+// i 0
 void Y(const int n, double complex amplitudes[n], int q) {
     if (q >= n || q < 0) {
         fprintf(stderr, "Invalid \"q\" argument in PauliY(), when n = %d: %d\n", n, q);
@@ -88,6 +93,8 @@ void Y(const int n, double complex amplitudes[n], int q) {
 }
 
 // Pauli Z
+// 1 0
+// 0 -1
 void Z(const int n, double complex amplitudes[n], int q) {
     if (q >= n || q < 0) {
         fprintf(stderr, "Invalid \"q\" argument in PauliZ(), when n = %d: %d\n", n, q);
@@ -132,6 +139,14 @@ void QFTi(const int n, double complex amplitudes[n]) {
     free(new_amplitudes);
 }
 
+// diffusion operator
+// -1 1 1 ... 1 1 1
+// 1 -1 1 ... 1 1 1
+// 1 1 -1 ... 1 1 1
+// ................
+// 1 1 1 ... -1 1 1
+// 1 1 1 ... 1 -1 1
+// 1 1 1 ... 1 1 -1
 void A(const int n, double complex amplitudes[n]) {
     double complex sum = 0;
     for (int i = 0; i < 1 << n; i++)

@@ -28,7 +28,8 @@ void to_binary(int n, char word[n + 1], int a) {
     }
 }
 
-void god_watch(FILE *stream, int n, double complex amplitudes[n]) {
+void god_watch(int n, double complex amplitudes[n]) {
+    // print complex values of amplitudes in qubit register
     if (debug == 0)
         return;
     char word[n + 1];
@@ -36,14 +37,14 @@ void god_watch(FILE *stream, int n, double complex amplitudes[n]) {
 
     double sum = 0;
 
-    fprintf(stream, "========================\nQUBITS STATE\n\n");
+    fprintf(output, "========================\nQUBITS STATE\n\n");
 
     for (int i = 0; i < 1 << n; i++) {
         sum += pow(cabs(amplitudes[i]), 2);
         to_binary(n, word, i);
-        fprintf(stream, "%s - |%.2lf + (%.2lf)i|^2 = %.4lf\n", word, creal(amplitudes[i]), cimag(amplitudes[i]), pow(cabs(amplitudes[i]), 2));
+        fprintf(output, "%s - |%.2lf + (%.2lf)i|^2 = %.4lf\n", word, creal(amplitudes[i]), cimag(amplitudes[i]), pow(cabs(amplitudes[i]), 2));
     }
-    fprintf(stream, "\n> %.4lf\n========================\n\n", sum);
+    fprintf(output, "\n> %.4lf\n========================\n\n", sum);
 }
 
 int watch(int n, double complex amplitudes[n]) {
@@ -57,19 +58,23 @@ int watch(int n, double complex amplitudes[n]) {
 }
 
 int Grover(int n, double complex amplitudes[n]) {
+    // Hadamara operation for all qubits in register
     H_full(n, amplitudes);
+
     int iterations = (int) ((M_PI / 4.0) * sqrt(1 << n));
     for (int iter = 1; iter < iterations; iter++) {
         fprintf(output, "ITERATION %d>\n", iter);
         fflush(output);
 
+        // call Oracle for negate x's amplitude
         Uf(n, amplitudes);
         ifprint("after Z:\n");
-        god_watch(output, n, amplitudes);
+        god_watch(n, amplitudes);
 
+        // diffusion operation
         A(n, amplitudes);
         ifprint("after A:\n");
-        god_watch(output, n, amplitudes);
+        god_watch(n, amplitudes);
     }
 
     return iterations - 1;
@@ -80,32 +85,39 @@ int main(int argc, char* argv[]) {
     int n = 3;
     output = stdout;
 
+    // options handling
     for (int i = 1; i < argc; i++) {
         assert(argv[i][1] == '=' && "Invalid arguments");
 
         switch (argv[i][0]) {
             case 'q':
+                // set qubit number
                 n = (int) strtoul(argv[i] + 2, NULL, 10);
                 assert(n > 0 && n <= 100 && "Invalid qubit number argument\n");
                 break;
             case 'd':
+                // set debug flag
                 debug = strcmp(argv[i] + 2, "true");
                 debug = !debug;
                 break;
             case 'a':
+                // set answer number of equation f(x) = 1
                 set_answer((int) strtoul(argv[i] + 2, NULL, 10));
             case 'f':
+                // set output file
                 output = fopen(argv[i] + 2, "w");
                 assert(output != NULL && "Opening file failed\n");
         }
     }
     assert(get_answer() >= 0 && get_answer() < (1 << n) && "Invalid answer argument\n");
 
+    // Init amplitudes of quant register
     double complex *amplitudes = calloc(1 << n, sizeof(double complex));
     assert(amplitudes != NULL);
     amplitudes[0] = 1;
 
     clock_t start = clock();
+    // count iterations of grover
     int iterations = Grover(n, amplitudes);
     clock_t end = clock();
 
